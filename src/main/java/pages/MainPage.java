@@ -1,0 +1,95 @@
+package pages;
+
+import io.qameta.allure.*;
+import org.openqa.selenium.*;
+
+/**
+ * Главная страница и раздел Конструктор
+ */
+public class MainPage extends AbstractPage {
+    public MainPage(WebDriver driver) {
+        super(driver);
+    }
+
+    // локаторы для конструктора
+    private final By constructorHeader = By.cssSelector("h1.text_type_main-large");
+    private final By bunsTab = By.xpath("//span[contains(@class, 'text_type_main-default') and text()='Булки']/..");
+    private final By saucesTab = By.xpath("//span[contains(@class, 'text_type_main-default') and text()='Соусы']/..");
+    private final By fillingsTab = By.xpath("//span[contains(@class, 'text_type_main-default') and text()='Начинки']/..");
+    private final By activeTab = By.cssSelector("div.tab_tab_type_current__2BEPc");
+    private final By loginButton = By.xpath("//button[text()='Войти в аккаунт']");
+    // локаторы заголовков разделов
+    private final By bunsHeader = By.xpath("//h2[text()='Булки']");
+    private final By saucesHeader = By.xpath("//h2[text()='Соусы']");
+    private final By fillingsHeader = By.xpath("//h2[text()='Начинки']");
+
+    @Step("Проверка открытия страницы конструктора")
+    public boolean isConstructorHeaderDisplayed() {
+        return isElementDisplayed(constructorHeader);
+    }
+
+    @Step("Клик по вкладке 'Булки'")
+    public void clickBunsTab() {
+        clickElement(bunsTab);
+    }
+
+    @Step("Клик по вкладке 'Соусы'")
+    public void clickSaucesTab() {
+        clickElement(saucesTab);
+    }
+
+    @Step("Клик по вкладке 'Начинки'")
+    public void clickFillingsTab() {
+        clickElement(fillingsTab);
+    }
+
+    @Step("Клик по кнопке 'Войти в аккаунт'")
+    public void clickLoginButton() {
+        clickElement(loginButton);
+    }
+
+    /* Проверим активность вкладки разными способами (небольшой эксперимент) */
+
+    // 1 вариант: общий метод проверки активной вкладки (ищет вкладку и возвращает её название)
+    @Step("Проверка что вкладка стала активной")
+    public String getActiveTabText() {
+        return driver.findElement(activeTab).getText();
+    }
+
+    // 2 вариант: проверка появления соответствующего заголовка раздела
+    public By getBunsHeaderLocator() {return bunsHeader;}
+    public By getSaucesHeaderLocator() {return saucesHeader;}
+    public By getFillingsHeaderLocator() {return fillingsHeader;}
+
+    @Step("Проверка что вкладка 'Булки' активна")
+    public boolean isBunsHeaderDisplayed() {
+        return driver.findElement(bunsHeader).isDisplayed();
+    }
+    @Step("Проверка что вкладка 'Соусы' активна")
+    public boolean isSaucesHeaderDisplayed() {
+        return driver.findElement(saucesHeader).isDisplayed();
+    }
+    @Step("Проверка что вкладка 'Начинки' активна")
+    public boolean isFillingsHeaderDisplayed() {
+        return driver.findElement(fillingsHeader).isDisplayed();
+    }
+
+    // 3 вариант: проверяет, что конкретная вкладка сейчас активна
+    @Step("Проверка что вкладка стала активной")
+    public boolean isTabActive(By tabLocator) {
+        try {
+            WebElement tab = driver.findElement(tabLocator);
+            return tab.getAttribute("class").contains("tab_tab_type_current__2BEPc");
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+    public By getTabLocator(String tabName) { // дополнительный метод получения локатора по имени вкладки
+        switch (tabName.toLowerCase()) {
+            case "булки": return bunsTab;
+            case "соусы": return saucesTab;
+            case "начинки": return fillingsTab;
+            default: throw new IllegalArgumentException("Unknown tab name: " + tabName);
+        }
+    }
+}
