@@ -1,16 +1,47 @@
+import org.junit.*;
 import org.openqa.selenium.*;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import pages.*;
+import utils.BrowserUtils;
+import utils.NavigationHelper;
+import api.UserApi;
 
 /**
- * Общие настройки для тестовых классов + URL
+ * Общие настройки для тестовых классов
  */
 public class BaseTest {
     protected WebDriver driver;
+    protected WebDriverWait wait;
+    protected NavigationHelper navigation;
 
-    /** Базовый URL приложения */
-    protected static final String BASE_URL = "https://stellarburgers.nomoreparties.site";
-    protected static final String LOGIN_PAGE_URL = BASE_URL + "/login";
-    protected static final String PASSWORD_RECOVERY_URL = BASE_URL + "/forgot-password";
-    protected static final String PERSONAL_ACCOUNT_URL = BASE_URL + "/account/profile";
-    protected static final String REGISTER_PAGE_URL = BASE_URL + "/register";
-    protected static final int DEFAULT_TIMEOUT = 5;
+    protected MainPage mainPage;
+    protected LoginPage loginPage;
+    protected RegisterPage registerPage;
+    protected PasswordRecoveryPage passwordRecoveryPage;
+    protected PersonalAccountPage personalAccountPage;
+    protected UserApi userApi;
+
+    @Before
+    public void setUp() {
+        driver = BrowserUtils.createWebDriver();
+        driver.manage().window().maximize();
+        wait = new WebDriverWait(driver, 10);
+
+        navigation = new NavigationHelper(driver);
+
+        mainPage = new MainPage(driver);
+        loginPage = new LoginPage(driver);
+        registerPage = new RegisterPage(driver);
+        passwordRecoveryPage = new PasswordRecoveryPage(driver);
+        personalAccountPage = new PersonalAccountPage(driver);
+        userApi = new UserApi();
+    }
+
+    @After
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 }

@@ -2,7 +2,7 @@ package pages;
 
 import io.qameta.allure.*;
 import org.openqa.selenium.*;
-import java.util.*;
+import org.openqa.selenium.support.ui.*;
 
 /**
  * Базовый абстрактный класс для страниц.
@@ -11,10 +11,12 @@ import java.util.*;
  * локаторы шапки сайта
  */
 public class AbstractPage {
-    protected WebDriver driver;
+    protected final WebDriver driver;
+    protected final WebDriverWait wait;
 
     public AbstractPage(WebDriver driver) {
         this.driver = driver;
+        this.wait = new WebDriverWait(driver, 10);
     }
 
     //=== Локаторы шапки сайта ===//
@@ -39,17 +41,21 @@ public class AbstractPage {
     //=== Общие методы для работы с элементами ===//
     // ввод текста в поле
     protected void typeText(By locator, String text) {
-        WebElement field = driver.findElement(locator);
+        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         field.clear();
         field.sendKeys(text);
     }
     // клик по элементу
     protected void clickElement(By locator) {
-        driver.findElement(locator).click();
+        wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
     }
     // проверка отображения элемента
     protected boolean isElementDisplayed(By locator) {
-        List<WebElement> elements = driver.findElements(locator);
-        return elements.size() == 1 && elements.get(0).isDisplayed();
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 }

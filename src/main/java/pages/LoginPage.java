@@ -12,7 +12,7 @@ public class LoginPage extends AbstractPage {
     }
 
     private final By loginHeader = By.xpath("//h2[text()='Вход']");
-    private final By emailField = By.xpath("//label[text()='Email']/following-sibling::input");;
+    private final By emailField = By.xpath("//label[text()='Email']/following-sibling::input");
     private final By passwordField = By.xpath("//label[text()='Пароль']/following-sibling::input");
     private final By loginButton = By.xpath("//button[text()='Войти']");
 

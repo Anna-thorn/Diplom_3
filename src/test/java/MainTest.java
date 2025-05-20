@@ -1,12 +1,10 @@
+import io.qameta.allure.*;
 import io.qameta.allure.junit4.*;
 import org.junit.*;
-import org.openqa.selenium.support.ui.*;
 import static org.junit.Assert.*;
 
-import pages.LoginPage;
-import pages.MainPage;
 import utils.UserGenerator;
-import pages.PersonalAccountPage;
+import model.User;
 
 /**
  * Проверка главной страницы и конструктора
@@ -15,137 +13,90 @@ import pages.PersonalAccountPage;
  * переход по клику на «Конструктор» и на логотип Stellar Burgers
  * работу переходов к разделам: «Булки», «Соусы», «Начинки».
  */
-public class MainTest extends ParameterizedWebTest {
-    private MainPage mainPage;
-    private LoginPage loginPage;
-    private PersonalAccountPage personalAccountPage;
-
-    public MainTest(String browser) {
-        super(browser);
-    }
-
-    @Before
-    public void setUp() {
-        mainPage = new MainPage(driver);
-        loginPage = new LoginPage(driver);
-        personalAccountPage = new PersonalAccountPage(driver);
-    }
+public class MainTest extends BaseTest {
 
     @Test
     @DisplayName("Переход по клику на ссылку 'Личный кабинет' (неавторизованным пользователем)")
+    @Description("Проверка что неавторизованный пользователь при клике на 'Личный кабинет' перенаправляется на страницу входа")
     public void testClickPersonalAccountUnregisteredUser() {
-        openUrl(BaseTest.BASE_URL);
+        navigation.openMainPage();
         mainPage.clickPersonalAccount();
-        assertTrue("Не произошел переход на страницу входа",
-                loginPage.isPageOpened());
+        assertTrue("Не произошел переход на страницу входа", loginPage.isPageOpened());
     }
 
     @Test
     @DisplayName("Переход по клику на ссылку 'Личный кабинет' (авторизованным пользователем)")
+    @Description("Проверка что авторизованный пользователь при клике на 'Личный кабинет' попадает в свой профиль")
     public void testClickPersonalAccountForLoggedUser() {
-        UserGenerator user = UserGenerator.getRandomValidUser().registerViaApi();
+        User registeredUser = userApi.registerAndGetUser(UserGenerator.createValidUser());
         try {
-            openUrl(BaseTest.LOGIN_PAGE_URL);
-            loginPage.fillLoginForm(user.getEmail(), user.getPassword());
-            loginPage.clickLoginButton();
-            new WebDriverWait(driver, 5)
-                    .until(ExpectedConditions.urlToBe(BaseTest.BASE_URL + "/"));
-            assertTrue("Главная страница не открылась", mainPage.isConstructorHeaderDisplayed());
-
+            navigation.openLoginPage()
+                    .login(registeredUser.getEmail(), registeredUser.getPassword());
+            mainPage.isConstructorHeaderDisplayed();
             mainPage.clickPersonalAccount();
-            new WebDriverWait(driver, 5)
-                    .until(ExpectedConditions.urlToBe(BaseTest.PERSONAL_ACCOUNT_URL));
             assertTrue("Страница профиля не открылась",
                     personalAccountPage.isProfileHeaderDisplayed());
         } finally {
-            try {
-                user.deleteViaApi();
-            } catch (Exception e) {
-                System.err.println("Ошибка при удалении пользователя: " + e.getMessage());
-            }
+            userApi.deleteUser(registeredUser);
         }
     }
 
     @Test
     @DisplayName("Переход по клику на ссылку 'Конструктор'")
+    @Description("Проверка что при клике на 'Конструктор' происходит переход на главную страницу")
     public void testClickConstructorLink() {
-        openUrl(BaseTest.LOGIN_PAGE_URL);
-        assertTrue("Страница входа не открылась",
-                loginPage.isPageOpened());
-
+        navigation.openLoginPage();
         mainPage.clickConstructorLink();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.urlToBe(BaseTest.BASE_URL + "/"));
         assertTrue("Главная страница не открылась",
                 mainPage.isConstructorHeaderDisplayed());
     }
 
     @Test
     @DisplayName("Переход по клику на логотип 'Stellar Burgers'")
+    @Description("Проверка что при клике на логотип происходит переход на главную страницу")
     public void testClickLogoLink() {
-        openUrl(BaseTest.LOGIN_PAGE_URL);
-        assertTrue("Страница входа не открылась",
-                loginPage.isPageOpened());
-
+        navigation.openLoginPage();
         mainPage.clickLogo();
-        new WebDriverWait(driver, 5)
-                .until(ExpectedConditions.urlToBe(BaseTest.BASE_URL + "/"));
         assertTrue("Главная страница не открылась",
                 mainPage.isConstructorHeaderDisplayed());
+    }
+
+    @Test
+    @DisplayName("Проверка активности вкладки 'Булки' по умолчанию") // вариант 1 - проверка текста активной вкладки
+    @Description("Проверка что при открытии главной страницы по умолчанию активна вкладка 'Булки'")
+    public void testBunsTabIsActiveByDefault() {
+        navigation.openMainPage();
+        assertEquals("По умолчанию должна быть активна вкладка 'Булки'",
+                "Булки", mainPage.getActiveTabText());
     }
 
     @Test
     @DisplayName("Переход в раздел 'Булки'") // вариант 1 - проверка текста активной вкладки
+    @Description("Проверка перехода в раздел 'Булки' после клика на соответствующую вкладку")
     public void testTransitionSectionBuns() {
-        openUrl(BaseTest.BASE_URL);
-        assertTrue("Главная страница не открылась",
-                mainPage.isConstructorHeaderDisplayed());
-        assertEquals("По умолчанию должна быть активна вкладка 'Булки'",
-                "Булки", mainPage.getActiveTabText());
-
+        navigation.openMainPage();
         mainPage.clickSaucesTab();
-        new WebDriverWait(driver, 3)
-                .until((ExpectedCondition<Boolean>) driver -> "Соусы".equals(mainPage.getActiveTabText()));
-        assertTrue("Не удалось перейти в раздел 'Соусы'",
-                mainPage.isSaucesHeaderDisplayed());
-
         mainPage.clickBunsTab();
-        new WebDriverWait(driver, 3)
-                .until((ExpectedCondition<Boolean>) driver -> "Булки".equals(mainPage.getActiveTabText()));
-        assertTrue("Раздел 'Булки' не отобразился после перехода",
-                mainPage.isBunsHeaderDisplayed());
+        assertEquals("После клика должна быть активна вкладка 'Булки'",
+                "Булки", mainPage.getActiveTabText());
     }
 
     @Test
     @DisplayName("Переход в раздел 'Соусы'") // вариант 2 - проверка заголовка раздела
+    @Description("Проверка перехода в раздел 'Соусы' после клика на соответствующую вкладку")
     public void testTransitionSectionSauces() {
-        openUrl(BaseTest.BASE_URL);
-        assertTrue("Главная страница не открылась",
-                mainPage.isConstructorHeaderDisplayed());
-        assertTrue("Раздел 'Булки' не активен по умолчанию",
-                mainPage.isBunsHeaderDisplayed());
-
+        navigation.openMainPage();
         mainPage.clickSaucesTab();
-        new WebDriverWait(driver, 3)
-                .until(ExpectedConditions.visibilityOfElementLocated(
-                        mainPage.getSaucesHeaderLocator()));
         assertTrue("Раздел 'Соусы' не отобразился после перехода",
-                mainPage.isSaucesHeaderDisplayed());
+                mainPage.isSectionHeaderDisplayed(mainPage.getSaucesHeaderLocator()));
     }
 
     @Test
     @DisplayName("Переход в раздел 'Начинки'") // вариант 3 - проверка класса активной вкладки
+    @Description("Проверка перехода в раздел 'Начинки' после клика на соответствующую вкладку")
     public void testTransitionSectionFillings() {
-        openUrl(BaseTest.BASE_URL);
-        assertTrue("Главная страница не открылась",
-                mainPage.isConstructorHeaderDisplayed());
-        assertTrue("Раздел 'Булки' не активен по умолчанию",
-                mainPage.isTabActive(mainPage.getTabLocator("Булки")));
-
+        navigation.openMainPage();
         mainPage.clickFillingsTab();
-        new WebDriverWait(driver, 3)
-                .until(ExpectedConditions.attributeContains(
-                        mainPage.getTabLocator("Начинки"), "class", "current"));
         assertTrue("Раздел 'Начинки' не отобразился после перехода",
                 mainPage.isTabActive(mainPage.getTabLocator("Начинки")));
     }
