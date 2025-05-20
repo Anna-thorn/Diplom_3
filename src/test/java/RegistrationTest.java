@@ -40,16 +40,19 @@ public class RegistrationTest extends BaseTest {
     @Description("Проверка что после заполнения валидных данных и нажатия кнопки регистрации происходит переход на страницу входа")
     public void testSuccessfulRegistration() {
         User user = UserGenerator.createValidUser();
-        User registeredUser = null;
         try {
             performRegistration(user);
             assertRegistrationSuccess();
-            Response loginResponse = userApi.loginUser(user);
-            registeredUser = user;
-            registeredUser.setAccessToken(userApi.extractAccessToken(loginResponse));
         } finally {
-            if (registeredUser != null && registeredUser.getAccessToken() != null) {
-                userApi.deleteUser(registeredUser);
+            try {
+                Response loginResponse = userApi.loginUser(user);
+                if (loginResponse.statusCode() == 200) {
+                    user.setAccessToken(userApi.extractAccessToken(loginResponse));
+                    userApi.deleteUser(user);
+                }
+            } catch (Exception e) {
+                // Логирование ошибки при очистке
+                System.out.println("Ошибка при очистке тестовых данных: " + e.getMessage());
             }
         }
     }

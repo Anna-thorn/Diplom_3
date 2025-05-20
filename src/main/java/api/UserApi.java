@@ -1,5 +1,6 @@
 package api;
 
+import com.google.gson.JsonObject;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
 import io.restassured.specification.*;
@@ -46,8 +47,12 @@ public class UserApi {
 
     @Step("Авторизация пользователя через API")
     public Response loginUser(User user) {
+        JsonObject requestBody = new JsonObject();
+        requestBody.addProperty("email", user.getEmail());
+        requestBody.addProperty("password", user.getPassword());
+
         return REQ_SPEC
-                .body(user.toJson())
+                .body(requestBody.toString())
                 .post(LOGIN_URL);
     }
 
