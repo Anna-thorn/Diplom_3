@@ -69,11 +69,8 @@ public class MainPage extends AbstractPage {
     // 1 вариант: общий метод проверки активной вкладки (ищет вкладку и возвращает её название)
     @Step("Проверка что вкладка стала активной")
     public String getActiveTabText() {
-        return wait.until(driver -> {
-                    WebElement activeTabElement = driver.findElement(activeTab);
-                    String text = activeTabElement.getText().trim();
-                    return !text.isEmpty() ? text : null;
-        });
+        WebElement activeTabElement = wait.until(ExpectedConditions.visibilityOfElementLocated(activeTab));
+        return activeTabElement.getText().trim();
     }
 
     // 2 вариант: проверка появления соответствующего заголовка раздела
