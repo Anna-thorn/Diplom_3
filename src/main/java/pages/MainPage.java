@@ -59,10 +59,24 @@ public class MainPage extends AbstractPage {
         return isElementDisplayed(fillingsHeader);
     }
 
+    @Step("Ожидание завершения скролла к разделу '{sectionName}'")
+    public void waitForScrollToSection(By sectionLocator) {
+        WebElement section = wait.until(ExpectedConditions.presenceOfElementLocated(sectionLocator));
+        wait.until(d -> {
+            int yPosition = section.getLocation().getY();
+            int windowHeight = driver.manage().window().getSize().getHeight();
+            return yPosition > 0 && yPosition < windowHeight;
+        });
+    }
+
     @Step("Клик по кнопке 'Войти в аккаунт'")
     public void clickLoginButton() {
         clickElement(loginButton);
     }
+
+    public By getBunsHeaderLocator() {return bunsHeader;}
+    public By getSaucesHeaderLocator() {return saucesHeader;}
+    public By getFillingsHeaderLocator() {return fillingsHeader;}
 
     /* Проверим активность вкладки разными способами (небольшой эксперимент) */
 
@@ -74,10 +88,6 @@ public class MainPage extends AbstractPage {
     }
 
     // 2 вариант: проверка появления соответствующего заголовка раздела
-    public By getBunsHeaderLocator() {return bunsHeader;}
-    public By getSaucesHeaderLocator() {return saucesHeader;}
-    public By getFillingsHeaderLocator() {return fillingsHeader;}
-
     @Step("Проверка что вкладка '{headerName}' активна")
     public boolean isSectionHeaderDisplayed(By headerLocator) {
         try {

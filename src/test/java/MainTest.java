@@ -76,7 +76,9 @@ public class MainTest extends BaseTest {
     public void testTransitionSectionBuns() {
         navigation.openMainPage();
         mainPage.clickSaucesTab();
+        mainPage.waitForScrollToSection(mainPage.getSaucesHeaderLocator());
         mainPage.clickBunsTab();
+        mainPage.waitForScrollToSection(mainPage.getBunsHeaderLocator());
         assertEquals("После клика должна быть активна вкладка 'Булки'",
                 "Булки", mainPage.getActiveTabText());
     }
